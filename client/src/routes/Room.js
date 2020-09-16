@@ -56,7 +56,7 @@ const Room = (props) => {
             userVideo.current.srcObject = stream;
             socketRef.current.emit("join room", roomID);
             socketRef.current.on("all users", users => {
-                console.log('Connected to Precisely | ' + users.length + ' user(s) in the room');
+                console.log('Connected to KD Server | ' + users.length + ' user(s) in the room');
                 const peers = [];
                 users.forEach(userID => {
                     const peer = createPeer(userID, socketRef.current.id, stream);
