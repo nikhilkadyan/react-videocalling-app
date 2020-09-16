@@ -24,6 +24,7 @@ const Video = (props) => {
         props.peer.on("stream", stream => {
             ref.current.srcObject = stream;
         })
+    // eslint-disable-next-line
     }, []);
 
     return (
@@ -60,8 +61,9 @@ const Room = (props) => {
                     })
                     peers.push({
                         peerId: userID,
-                        peer: peer
+                        peer
                     });
+
                 })
                 setPeers(peers);
             })
@@ -73,7 +75,7 @@ const Room = (props) => {
                     peer,
                 })
 
-                setPeers(users => [...users, peer]);
+                setPeers(users => [...users, {peerId: payload.callerID, peer} ]);
             });
 
             socketRef.current.on("receiving returned signal", payload => {
@@ -81,8 +83,10 @@ const Room = (props) => {
                 item.peer.signal(payload.signal);
             });
 
+            socketRef.current.on("disconnected", userId => removePeer(userId))
         })
 
+    // eslint-disable-next-line
     }, []);
 
     function createPeer(userToSignal, callerID, stream) {
@@ -94,10 +98,6 @@ const Room = (props) => {
 
         peer.on("signal", signal => {
             socketRef.current.emit("sending signal", { userToSignal, callerID, signal })
-        })
-
-        peer.on('close', () => {
-            removePeer(userToSignal)
         })
 
         peer.on('error', (err) => {
@@ -128,15 +128,6 @@ const Room = (props) => {
         let newPeers = peers.filter(e => e.peerId !== id);
         setPeers(newPeers);
     }
-
-    // setInterval(() => {
-    //     peers.forEach(element => {
-    //         if(element._connected === false){
-    //             let newPeers = peers.filter(e => e !== element);
-    //             setPeers(newPeers);
-    //         }
-    //     });
-    // }, 2500);
 
     return (
         <>
