@@ -8,7 +8,13 @@ const CreateRoom = (props) => {
     }
 
     return (
-        <button onClick={create}>Create room</button>
+        <div className="createRoomContainer">
+            <div>
+                <h2>React Video Calling App</h2>
+                <h6>By Nikhil Kadyan</h6>
+                <button onClick={create}>Create room</button>
+            </div>
+        </div>
     );
 };
 

@@ -15,6 +15,9 @@ const Container = styled.div`
 const StyledVideo = styled.video`
     height: 40%;
     width: 50%;
+    margin: 20px;
+    max-height: 300px;
+    max-width: 250px;
     transform: scaleX(-1);
     -webkit-transform: scaleX(-1);
 `;
@@ -23,7 +26,7 @@ const Video = (props) => {
     const ref = useRef();
 
     useEffect(() => {
-        props.peer.on("stream", stream => {
+        props.peer.peer.on("stream", stream => {
             ref.current.srcObject = stream;
         })
     // eslint-disable-next-line
@@ -149,7 +152,7 @@ const Room = (props) => {
             <StyledVideo muted ref={userVideo} autoPlay playsInline />
             {peers.map((peer, index) => {
                 return (
-                    <Video key={index} peer={peer.peer} />
+                    <Video key={index} peer={peer} />
                 );
             })}
         </Container>
