@@ -14,10 +14,10 @@ io.on('connection', socket => {
     socket.on("join room", roomID => {
         if (users[roomID]) {
             const length = users[roomID].length;
-            if (length === 4) {
-                socket.emit("room full");
-                return;
-            }
+            // if (length === 4) {
+            //     socket.emit("room full");
+            //     return;
+            // }
             users[roomID].push(socket.id);
         } else {
             users[roomID] = [socket.id];
@@ -42,6 +42,7 @@ io.on('connection', socket => {
         if (room) {
             room = room.filter(id => id !== socket.id);
             users[roomID] = room;
+            socket.emit("all users", users[roomID]);
         }
     });
 
