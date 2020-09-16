@@ -1,15 +1,35 @@
 require('dotenv').config();
 const express = require("express");
-const http = require("http");
-const app = express();
-const server = http.createServer(app);
 const socket = require("socket.io");
+// const http = require("http");
+const https = require('https');
+const fs = require('fs');
+
+// https Certificate
+var key = fs.readFileSync(__dirname + '/../certificates/privkey.pem');
+var cert = fs.readFileSync(__dirname + '/../certificates/fullchain.pem');
+var options = {
+    key: key,
+    cert: cert
+};
+
+const app = express();
+
+app.get('/', (req, res) => {
+    res.status(200).send("Precisely Learnage Server")
+});
+
+app.set('port', process.env.PORT || 4000);
+
+// const server = http.createServer(app);
+var server = https.createServer(options, app);
+server.listen(app.get('port'), () => {
+    console.log("server starting on port : " + app.get('port'));
+});
+
 const io = socket(server);
-
 const users = {};
-
 const socketToRoom = {};
-
 io.on('connection', socket => {
     socket.on("join room", roomID => {
         if (users[roomID]) {
@@ -52,6 +72,7 @@ io.on('connection', socket => {
 
 });
 
-server.listen(process.env.PORT || 8000, () => console.log('server is running on port 8000'));
+// server.listen(process.env.PORT || 8000, () => console.log('server is running on port 8000'));
+
 
 

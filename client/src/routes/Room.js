@@ -53,7 +53,7 @@ const Room = (props) => {
             userVideo.current.srcObject = stream;
             socketRef.current.emit("join room", roomID);
             socketRef.current.on("all users", users => {
-                console.log('Getting users from Backend server')
+                console.log('Connected to Precisely | ' + users.length + ' user(s) in the room');
                 const peers = [];
                 users.forEach(userID => {
                     const peer = createPeer(userID, socketRef.current.id, stream);
@@ -89,6 +89,7 @@ const Room = (props) => {
                 console.log(userId + "has left");
                 removePeer(userId)
             })
+            
         })
 
     // eslint-disable-next-line
@@ -105,14 +106,9 @@ const Room = (props) => {
             socketRef.current.emit("sending signal", { userToSignal, callerID, signal })
         })
 
-        peer.on('error', (err) => {
-            console.log(err)
-            removePeer(userToSignal)
-        })
-
-        peer.on('close', () => {
-            removePeer(userToSignal)
-        })
+        // peer.on('close', () => {
+        //     removePeer(userToSignal)
+        // })
 
         return peer;
     }
@@ -129,6 +125,10 @@ const Room = (props) => {
             socketRef.current.emit("returning signal", { signal, callerID })
         })
 
+        peer.on('error', (err) => {
+            removePeer(callerID)
+        })
+
         peer.signal(incomingSignal);
 
         return peer;
@@ -136,8 +136,12 @@ const Room = (props) => {
 
     function removePeer(id){
         console.log("removing " + id);
-        let newPeers = peers.filter(e => e.peerId !== id);
-        setPeers(newPeers);
+        setPeers((prev) => {
+            return prev.filter(e => e.peerId !== id);
+        });
+
+        let newPeerRef = peersRef.current.filter(e => e.peerID !== id);
+        peersRef.current = newPeerRef;
     }
 
     return (
