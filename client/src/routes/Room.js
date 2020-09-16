@@ -145,8 +145,6 @@ const Room = (props) => {
     }
 
     return (
-        <>
-        <button>Exit</button>
         <Container>
             <StyledVideo muted ref={userVideo} autoPlay playsInline />
             {peers.map((peer, index) => {
@@ -155,7 +153,6 @@ const Room = (props) => {
                 );
             })}
         </Container>
-        </>
     );
 };
 
