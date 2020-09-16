@@ -24,7 +24,7 @@ io.on('connection', socket => {
         }
         socketToRoom[socket.id] = roomID;
         const usersInThisRoom = users[roomID].filter(id => id !== socket.id);
-        console.log(socket.id + ' connected.')
+        console.log(socket.id + ' connected.');
         socket.emit("all users", usersInThisRoom);
     });
 
