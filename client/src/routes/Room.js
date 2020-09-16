@@ -48,12 +48,12 @@ const Room = (props) => {
     const roomID = props.match.params.roomID;
     
     useEffect(() => {
-        socketRef.current = io.connect("https://simple-peer-socket-server.herokuapp.com");
+        socketRef.current = io.connect("https://learnage-server.precisely.co.in:4000");
         navigator.mediaDevices.getUserMedia({ video: videoConstraints, audio: true }).then(stream => {
             userVideo.current.srcObject = stream;
             socketRef.current.emit("join room", roomID);
             socketRef.current.on("all users", users => {
-                console.log('fired')
+                console.log('Getting users from Backend server')
                 const peers = [];
                 users.forEach(userID => {
                     const peer = createPeer(userID, socketRef.current.id, stream);
@@ -71,12 +71,12 @@ const Room = (props) => {
             })
 
             socketRef.current.on("user joined", payload => {
+                console.log("Incoming signal from " + payload.callerID);
                 const peer = addPeer(payload.signal, payload.callerID, stream);
                 peersRef.current.push({
                     peerID: payload.callerID,
                     peer,
                 })
-
                 setPeers(users => [...users, {peerId: payload.callerID, peer} ]);
             });
 
@@ -85,7 +85,10 @@ const Room = (props) => {
                 item.peer.signal(payload.signal);
             });
 
-            socketRef.current.on("disconnected", userId => removePeer(userId))
+            socketRef.current.on("disconnected", userId => {
+                console.log(userId + "has left");
+                removePeer(userId)
+            })
         })
 
     // eslint-disable-next-line
@@ -107,6 +110,10 @@ const Room = (props) => {
             removePeer(userToSignal)
         })
 
+        peer.on('close', () => {
+            removePeer(userToSignal)
+        })
+
         return peer;
     }
 
@@ -118,6 +125,7 @@ const Room = (props) => {
         })
 
         peer.on("signal", signal => {
+            console.log("returning signal to " + callerID);
             socketRef.current.emit("returning signal", { signal, callerID })
         })
 
@@ -127,6 +135,7 @@ const Room = (props) => {
     }
 
     function removePeer(id){
+        console.log("removing " + id);
         let newPeers = peers.filter(e => e.peerId !== id);
         setPeers(newPeers);
     }
