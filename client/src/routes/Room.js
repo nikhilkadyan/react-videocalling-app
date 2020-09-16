@@ -24,6 +24,7 @@ const Video = (props) => {
         props.peer.on("stream", stream => {
             ref.current.srcObject = stream;
         })
+    // eslint-disable-next-line
     }, []);
 
     return (
@@ -58,7 +59,11 @@ const Room = (props) => {
                         peerID: userID,
                         peer,
                     })
-                    peers.push(peer);
+                    peers.push({
+                        peerId: userID,
+                        peer
+                    });
+
                 })
                 setPeers(peers);
             })
@@ -70,15 +75,18 @@ const Room = (props) => {
                     peer,
                 })
 
-                setPeers(users => [...users, peer]);
+                setPeers(users => [...users, {peerId: payload.callerID, peer} ]);
             });
 
             socketRef.current.on("receiving returned signal", payload => {
                 const item = peersRef.current.find(p => p.peerID === payload.id);
                 item.peer.signal(payload.signal);
             });
+
+            socketRef.current.on("disconnected", userId => removePeer(userId))
         })
 
+    // eslint-disable-next-line
     }, []);
 
     function createPeer(userToSignal, callerID, stream) {
@@ -90,6 +98,11 @@ const Room = (props) => {
 
         peer.on("signal", signal => {
             socketRef.current.emit("sending signal", { userToSignal, callerID, signal })
+        })
+
+        peer.on('error', (err) => {
+            console.log(err)
+            removePeer(userToSignal)
         })
 
         return peer;
@@ -111,14 +124,10 @@ const Room = (props) => {
         return peer;
     }
 
-    setInterval(() => {
-        peers.forEach(element => {
-            if(element._connected === false){
-                let newPeers = peers.filter(e => e !== element);
-                setPeers(newPeers);
-            }
-        });
-    }, 2500);
+    function removePeer(id){
+        let newPeers = peers.filter(e => e.peerId !== id);
+        setPeers(newPeers);
+    }
 
     return (
         <>
@@ -127,7 +136,7 @@ const Room = (props) => {
             <StyledVideo muted ref={userVideo} autoPlay playsInline />
             {peers.map((peer, index) => {
                 return (
-                    <Video key={index} peer={peer} />
+                    <Video key={index} peer={peer.peer} />
                 );
             })}
         </Container>
