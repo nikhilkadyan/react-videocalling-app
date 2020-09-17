@@ -3,6 +3,13 @@ import io from "socket.io-client";
 import Peer from "simple-peer";
 import styled from "styled-components";
 
+let SOCKET_SERVER;
+if(process.env.REACT_APP_SERVER){
+    SOCKET_SERVER = process.env.REACT_APP_SERVER;
+} else {
+    SOCKET_SERVER = "https://learnage-server.precisely.co.in:4000/videoCall";
+}
+
 const Container = styled.div`
     position: absolute;
     top: 0;
@@ -44,7 +51,7 @@ const Room = (props) => {
     const roomID = props.match.params.roomID;
 
     useEffect(() => {
-        socketRef.current = io.connect(process.env.REACT_APP_SERVER);
+        socketRef.current = io.connect(SOCKET_SERVER);
         navigator.mediaDevices.getUserMedia({ video: videoConstraints, audio: true }).then(stream => {
             userVideo.current.srcObject = stream;
             socketRef.current.emit("join room", roomID);
