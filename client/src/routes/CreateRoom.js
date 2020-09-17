@@ -6,7 +6,6 @@ const CreateRoom = (props) => {
         const id = uuid();
         props.history.push(`/room/${id}`);
     }
-
     return (
         <div className="createRoomContainer">
             <div>

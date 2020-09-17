@@ -44,7 +44,7 @@ const Room = (props) => {
     const roomID = props.match.params.roomID;
 
     useEffect(() => {
-        socketRef.current = io.connect("https://learnage-server.precisely.co.in:4000");
+        socketRef.current = io.connect(process.env.REACT_APP_SERVER);
         navigator.mediaDevices.getUserMedia({ video: videoConstraints, audio: true }).then(stream => {
             userVideo.current.srcObject = stream;
             socketRef.current.emit("join room", roomID);
@@ -107,9 +107,9 @@ const Room = (props) => {
             socketRef.current.emit("sending signal", { userToSignal, callerID, signal })
         })
 
-        peer.on('error', (err) => {
-            removePeer(callerID)
-        })
+        // peer.on('error', (err) => {
+        //     removePeer(callerID)
+        // })
 
         return peer;
     }
@@ -126,29 +126,29 @@ const Room = (props) => {
             socketRef.current.emit("returning signal", { signal, callerID })
         })
 
-        peer.on('error', (err) => {
-            removePeer(callerID)
-        })
+        // peer.on('error', (err) => {
+        //     removePeer(callerID)
+        // })
 
         peer.signal(incomingSignal);
 
         return peer;
     }
 
-    function removePeer(id) {
-        console.log("removing " + id);
-        setPeers((prev) => {
-            return prev.filter(e => e.peerId !== id);
-        });
+    // function removePeer(id) {
+    //     console.log("removing " + id);
+    //     setPeers((prev) => {
+    //         return prev.filter(e => e.peerId !== id);
+    //     });
 
-        let newPeerRef = peersRef.current.filter(e => e.peerID !== id);
-        peersRef.current = newPeerRef;
+    //     let newPeerRef = peersRef.current.filter(e => e.peerID !== id);
+    //     peersRef.current = newPeerRef;
 
-        let v = document.getElementById(id);
-        if (v) {
-            v.remove()
-        }
-    }
+    //     let v = document.getElementById(id);
+    //     if (v) {
+    //         v.remove()
+    //     }
+    // }
 
     return (
         <Container>

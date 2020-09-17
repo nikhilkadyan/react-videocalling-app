@@ -1,18 +1,6 @@
 require('dotenv').config();
 const express = require("express");
 const socket = require("socket.io");
-// const http = require("http");
-const https = require('https');
-const fs = require('fs');
-
-// https Certificate
-var key = fs.readFileSync(__dirname + '/../certificates/privkey.pem');
-var cert = fs.readFileSync(__dirname + '/../certificates/fullchain.pem');
-var options = {
-    key: key,
-    cert: cert
-};
-
 const app = express();
 
 app.get('/', (req, res) => {
@@ -20,12 +8,28 @@ app.get('/', (req, res) => {
 });
 
 app.set('port', process.env.PORT || 4000);
-
-// const server = http.createServer(app);
-var server = https.createServer(options, app);
+let server;
+if(process.env.ENVIROMENT == 'DEBUG'){
+    const http = require("http");
+    server = http.createServer(app);
+} else {
+    const https = require('https');
+    const fs = require('fs');
+    // https Certificate
+    const key = fs.readFileSync(__dirname + '/../certificates/privkey.pem');
+    const cert = fs.readFileSync(__dirname + '/../certificates/fullchain.pem');
+    const options = {
+        key: key,
+        cert: cert
+    };
+    server = https.createServer(options, app);
+}
 server.listen(app.get('port'), () => {
-    console.log("server starting on port : " + app.get('port'));
+    console.log("server starting on port : " + app.get('port') + " | " + process.env.ENVIROMENT + " mode");
 });
+
+
+
 
 const io = socket(server);
 const users = {};
@@ -68,8 +72,7 @@ io.on('connection', socket => {
             room = room.filter(id => id !== socket.id);
             users[roomID] = room;
         }
-        console.log("Room ID : " + roomID)
-        console.log(users[roomID])
+        console.log("Users in room : " + roomID + " are - " + users[roomID]);
         io.to(roomID).emit("user left", socket.id);
     });
 
