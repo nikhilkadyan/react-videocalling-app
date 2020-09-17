@@ -1,4 +1,6 @@
-module.exports = (io) => {
+module.exports = (socketIO) => {
+    const io = socketIO.of('/videoCall');
+    
     const users = {};
     const socketToRoom = {};
     
@@ -43,6 +45,5 @@ module.exports = (io) => {
             console.log("Users in room : " + roomID + " are - " + users[roomID]);
             io.to(roomID).emit("user left", socket.id);
         });
-    
     });    
 }

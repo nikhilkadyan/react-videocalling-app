@@ -15,4 +15,5 @@ server.listen(app.get('port'), () => {
 
 // Import Sockets
 const io = socket(server);
-require('./modules/sockets')(io);
+require('./modules/videoCallSockets')(io);
+require('./modules/videoBroadcastSockets')(io);
