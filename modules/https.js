@@ -7,8 +7,8 @@ module.exports = function (app) {
         const https = require('https');
         const fs = require('fs');
         // https Certificate
-        const key = fs.readFileSync(__dirname + '/../certificates/privkey.pem');
-        const cert = fs.readFileSync(__dirname + '/../certificates/fullchain.pem');
+        const key = fs.readFileSync(__dirname + '/../../certificates/privkey.pem');
+        const cert = fs.readFileSync(__dirname + '/../../certificates/fullchain.pem');
         const options = {
             key: key,
             cert: cert
