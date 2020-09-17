@@ -104,9 +104,10 @@ const Room = (props) => {
             socketRef.current.emit("sending signal", { userToSignal, callerID, signal })
         })
 
-        // peer.on('close', () => {
-        //     removePeer(userToSignal)
-        // })
+        peer.on('error', (err) => {
+            console.log(err)
+            removePeer(callerID)
+        })
 
         return peer;
     }
@@ -134,13 +135,17 @@ const Room = (props) => {
 
     function removePeer(id){
         console.log("removing " + id);
-        document.getElementById(id).remove();
         setPeers((prev) => {
             return prev.filter(e => e.peerId !== id);
         });
 
         let newPeerRef = peersRef.current.filter(e => e.peerID !== id);
         peersRef.current = newPeerRef;
+
+        let v = document.getElementById(id);
+        if(v){
+            v.remove()
+        }
     }
 
     return (
