@@ -22,7 +22,7 @@ const Video = (props) => {
         props.peer.peer.on("stream", stream => {
             ref.current.srcObject = stream;
         })
-    // eslint-disable-next-line
+        // eslint-disable-next-line
     }, []);
 
     return (
@@ -42,7 +42,7 @@ const Room = (props) => {
     const userVideo = useRef();
     const peersRef = useRef([]);
     const roomID = props.match.params.roomID;
-    
+
     useEffect(() => {
         socketRef.current = io.connect("https://learnage-server.precisely.co.in:4000");
         navigator.mediaDevices.getUserMedia({ video: videoConstraints, audio: true }).then(stream => {
@@ -75,7 +75,7 @@ const Room = (props) => {
                     peerID: payload.callerID,
                     peer,
                 })
-                setPeers(users => [...users, {peerId: payload.callerID, peer} ]);
+                setPeers(users => [...users, { peerId: payload.callerID, peer }]);
             });
 
             socketRef.current.on("receiving returned signal", payload => {
@@ -83,14 +83,17 @@ const Room = (props) => {
                 item.peer.signal(payload.signal);
             });
 
-            socketRef.current.on("disconnected", userId => {
+            socketRef.current.on("user left", userId => {
                 console.log(userId + "has left");
-                removePeer(userId)
+                let v = document.getElementById(userId);
+                if (v) {
+                    v.remove()
+                }
             })
-            
+
         })
 
-    // eslint-disable-next-line
+        // eslint-disable-next-line
     }, []);
 
     function createPeer(userToSignal, callerID, stream) {
@@ -105,7 +108,6 @@ const Room = (props) => {
         })
 
         peer.on('error', (err) => {
-            console.log(err)
             removePeer(callerID)
         })
 
@@ -133,7 +135,7 @@ const Room = (props) => {
         return peer;
     }
 
-    function removePeer(id){
+    function removePeer(id) {
         console.log("removing " + id);
         setPeers((prev) => {
             return prev.filter(e => e.peerId !== id);
@@ -143,7 +145,7 @@ const Room = (props) => {
         peersRef.current = newPeerRef;
 
         let v = document.getElementById(id);
-        if(v){
+        if (v) {
             v.remove()
         }
     }

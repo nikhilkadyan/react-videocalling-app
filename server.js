@@ -42,6 +42,7 @@ io.on('connection', socket => {
         } else {
             users[roomID] = [socket.id];
         }
+        socket.join(roomID);
         socketToRoom[socket.id] = roomID;
         const usersInThisRoom = users[roomID].filter(id => id !== socket.id);
         console.log(socket.id + ' connected.');
@@ -61,13 +62,15 @@ io.on('connection', socket => {
 
     socket.on('disconnect', () => {
         const roomID = socketToRoom[socket.id];
+        socket.leave(roomID);
         let room = users[roomID];
         if (room) {
             room = room.filter(id => id !== socket.id);
             users[roomID] = room;
         }
-        // console.log(socket.id + " left.")
-        socket.emit("disconnected", socket.id);
+        console.log("Room ID : " + roomID)
+        console.log(users[roomID])
+        io.to(roomID).emit("user left", socket.id);
     });
 
 });
