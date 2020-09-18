@@ -28,7 +28,7 @@ module.exports = (socketIO) => {
         socket.on("sending signal", payload => {
             console.log(payload.callerID + ' sending signal to ' + payload.userToSignal)
     
-            io.to(payload.userToSignal).emit('user joined', { signal: payload.signal, callerID: payload.callerID });
+            io.to(payload.userToSignal).emit('user joined', { signal: payload.signal, callerID: payload.callerID, phoneixID: payload.phoneix });
         });
     
         socket.on("returning signal", payload => {

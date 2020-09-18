@@ -24,6 +24,7 @@ const Container = styled.div`
 
 const Video = (props) => {
     const ref = useRef();
+    console.log(props.peer)
 
     useEffect(() => {
         props.peer.peer.on("stream", stream => {
@@ -63,14 +64,15 @@ const Room = (props) => {
                 const peers = [];
                 users.forEach(payload => {
                     const userID = payload.socketID;
-                    console.log(payload)
-                    const peer = createPeer(userID, socketRef.current.id, stream);
+                    const peer = createPeer(userID, socketRef.current.id, stream, payload.phoneixID);
                     peersRef.current.push({
                         peerID: userID,
+                        phoneixID: payload.phoneixID,
                         peer,
                     })
                     peers.push({
                         peerId: userID,
+                        phoneixID: payload.phoneixID,
                         peer
                     });
 
@@ -79,13 +81,13 @@ const Room = (props) => {
             })
 
             socketRef.current.on("user joined", payload => {
-                console.log("Incoming signal from " + payload.callerID);
                 const peer = addPeer(payload.signal, payload.callerID, stream);
                 peersRef.current.push({
                     peerID: payload.callerID,
+                    phoneixID: payload.phoneixID,
                     peer,
                 })
-                setPeers(users => [...users, { peerId: payload.callerID, peer }]);
+                setPeers(users => [...users, { peerId: payload.callerID,phoneixID: payload.phoneixID, peer }]);
             });
 
             socketRef.current.on("receiving returned signal", payload => {
@@ -106,7 +108,7 @@ const Room = (props) => {
         // eslint-disable-next-line
     }, []);
 
-    function createPeer(userToSignal, callerID, stream) {
+    function createPeer(userToSignal, callerID, stream, phoneix) {
         const peer = new Peer({
             initiator: true,
             trickle: false,
@@ -114,12 +116,8 @@ const Room = (props) => {
         });
 
         peer.on("signal", signal => {
-            socketRef.current.emit("sending signal", { userToSignal, callerID, signal })
+            socketRef.current.emit("sending signal", { userToSignal, callerID, signal, phoneix })
         })
-
-        // peer.on('error', (err) => {
-        //     removePeer(callerID)
-        // })
 
         return peer;
     }
@@ -132,33 +130,13 @@ const Room = (props) => {
         })
 
         peer.on("signal", signal => {
-            console.log("returning signal to " + callerID);
             socketRef.current.emit("returning signal", { signal, callerID })
         })
-
-        // peer.on('error', (err) => {
-        //     removePeer(callerID)
-        // })
 
         peer.signal(incomingSignal);
 
         return peer;
     }
-
-    // function removePeer(id) {
-    //     console.log("removing " + id);
-    //     setPeers((prev) => {
-    //         return prev.filter(e => e.peerId !== id);
-    //     });
-
-    //     let newPeerRef = peersRef.current.filter(e => e.peerID !== id);
-    //     peersRef.current = newPeerRef;
-
-    //     let v = document.getElementById(id);
-    //     if (v) {
-    //         v.remove()
-    //     }
-    // }
 
     return (
         <Container>
