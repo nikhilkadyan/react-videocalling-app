@@ -49,19 +49,21 @@ const Room = (props) => {
     const userVideo = useRef();
     const peersRef = useRef([]);
     const roomID = props.match.params.roomID;
+    const phoneixID = 'ankldjfanfnacnald';
 
     useEffect(() => {
         socketRef.current = io.connect(SOCKET_SERVER);
         navigator.mediaDevices.getUserMedia({ video: videoConstraints, audio: true }).then(stream => {
             userVideo.current.srcObject = stream;
-            socketRef.current.emit("join room", roomID);
+            socketRef.current.emit("join room", {phoneixID: phoneixID, roomID: roomID});
 
             socketRef.current.on("all users", users => {
                 console.log('Connected to KD Server | ' + users.length + ' user(s) in the room');
                 userVideo.current.id = socketRef.current.id;
                 const peers = [];
-                users.forEach(userID => {
-                    console.log(userID)
+                users.forEach(payload => {
+                    const userID = payload.socketID;
+                    console.log(payload)
                     const peer = createPeer(userID, socketRef.current.id, stream);
                     peersRef.current.push({
                         peerID: userID,
@@ -91,9 +93,9 @@ const Room = (props) => {
                 item.peer.signal(payload.signal);
             });
 
-            socketRef.current.on("user left", userId => {
-                console.log(userId + "has left");
-                let v = document.getElementById(userId);
+            socketRef.current.on("user left", socketID => {
+                console.log(socketID + "has left");
+                let v = document.getElementById(socketID);
                 if (v) {
                     v.remove()
                 }
