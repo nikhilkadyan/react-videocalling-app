@@ -95,6 +95,10 @@ const Room = (props) => {
                 item.peer.signal(payload.signal);
             });
 
+            socketRef.current.on("mute", payload => {
+                console.log(payload);
+            })
+
             socketRef.current.on("user left", socketID => {
                 console.log(socketID + "has left");
                 let v = document.getElementById(socketID);
