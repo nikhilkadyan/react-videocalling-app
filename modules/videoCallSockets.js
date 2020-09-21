@@ -38,7 +38,7 @@ module.exports = (socketIO) => {
         
         socket.on("mute all", payload => {
             console.log(socket.id + ' sent mute all to room ' + payload.roomID)
-            io.to(roomID).emit('mute', payload);
+            io.to(payload.roomID).emit('mute', payload);
         });
 
         socket.on('disconnect', () => {

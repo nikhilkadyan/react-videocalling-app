@@ -27,6 +27,13 @@ body {
     -webkit-transform: scaleX(-1);
 }
 
+#screen-btn {
+    position: absolute;
+    top: 10px;
+    left: calc(50% - 60px);
+    width: 120px;
+}
+
 
 @media only screen and (max-width: 480px){
     .createRoomContainer {

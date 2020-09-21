@@ -24,8 +24,6 @@ const Container = styled.div`
 
 const Video = (props) => {
     const ref = useRef();
-    console.log(props.peer)
-
     useEffect(() => {
         props.peer.peer.on("stream", stream => {
             ref.current.srcObject = stream;
@@ -38,7 +36,6 @@ const Video = (props) => {
     );
 }
 
-
 const videoConstraints = {
     height: window.innerHeight / 4,
     width: window.innerWidth / 4
@@ -48,15 +45,20 @@ const Room = (props) => {
     const [peers, setPeers] = useState([]);
     const socketRef = useRef();
     const userVideo = useRef();
+    const userStream = useRef();
+    const userCameraMedia = useRef();
+    const [sharingScreen,togglesharing] = useState(false);
     const peersRef = useRef([]);
     const roomID = props.match.params.roomID;
-    const phoneixID = 'ankldjfanfnacnald';
+    const currPhoneixID = 'ankldjfanfnacnald';
 
     useEffect(() => {
         socketRef.current = io.connect(SOCKET_SERVER);
         navigator.mediaDevices.getUserMedia({ video: videoConstraints, audio: true }).then(stream => {
-            userVideo.current.srcObject = stream;
-            socketRef.current.emit("join room", {phoneixID: phoneixID, roomID: roomID});
+            userStream.current = stream;
+            userVideo.current.srcObject = userStream.current;
+
+            socketRef.current.emit("join room", {phoneixID: currPhoneixID, roomID: roomID});
 
             socketRef.current.on("all users", users => {
                 console.log('Connected to KD Server | ' + users.length + ' user(s) in the room');
@@ -64,7 +66,7 @@ const Room = (props) => {
                 const peers = [];
                 users.forEach(payload => {
                     const userID = payload.socketID;
-                    const peer = createPeer(userID, socketRef.current.id, stream, payload.phoneixID);
+                    const peer = createPeer(userID, socketRef.current.id, stream);
                     peersRef.current.push({
                         peerID: userID,
                         phoneixID: payload.phoneixID,
@@ -112,7 +114,7 @@ const Room = (props) => {
         // eslint-disable-next-line
     }, []);
 
-    function createPeer(userToSignal, callerID, stream, phoneix) {
+    function createPeer(userToSignal, callerID, stream) {
         const peer = new Peer({
             initiator: true,
             trickle: false,
@@ -120,7 +122,7 @@ const Room = (props) => {
         });
 
         peer.on("signal", signal => {
-            socketRef.current.emit("sending signal", { userToSignal, callerID, signal, phoneix })
+            socketRef.current.emit("sending signal", { userToSignal, callerID, signal, currPhoneixID })
         })
 
         return peer;
@@ -142,8 +144,46 @@ const Room = (props) => {
         return peer;
     }
 
+    function shareScreen(){
+        userCameraMedia.current= userStream.current;
+
+        navigator.mediaDevices.getDisplayMedia({ cursor: true }).then(stream => {
+            // Get Video stream of screen share
+            const screenStream = stream.getTracks()[0];
+            // Set Screen share stream to video el
+            userVideo.current.srcObject = stream;
+            togglesharing(true);
+
+            // Send screen share to each peer
+            peers.forEach(({peer}) => {
+                // Old Stream that was previously being sent
+                const oldStream = peer.streams[0].getVideoTracks()[0];
+                // Replace camera stream with screen stream
+                peer.replaceTrack(oldStream, screenStream, peer.streams[0]);
+            });
+            
+            // Revert to camera screen when screen stream is stoppped
+            screenStream.onended = function(){
+                togglesharing(false);
+                console.log('Stopping screen sharing')
+                peers.forEach(({peer}) => {
+                // Get the old stream
+                const oldStream = peer.streams[0].getVideoTracks()[0];
+                // Set Camera stream
+                const newStream = userCameraMedia.current.getTracks().find(s => s.kind === 'video');
+                // Replace the stream on peer
+                peer.replaceTrack(oldStream, newStream, peer.streams[0]);
+                // Set camera stream on local video el
+                userVideo.current.srcObject = userCameraMedia.current;
+                });
+            }
+
+        });
+    }
+
     return (
         <Container>
+            {!sharingScreen && <button id="screen-btn" onClick={() => shareScreen()}>Toogle Screen Share</button>}
             <video muted ref={userVideo} playsInline autoPlay className="styledVideo" />
             {peers.map((peer, index) => {
                 return (
