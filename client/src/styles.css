@@ -23,8 +23,15 @@ body {
     height: 50%;
     max-height: 200px;
     width: 190px;
-    transform: scaleX(-1);
-    -webkit-transform: scaleX(-1);
+    /* transform: scaleX(-1);
+    -webkit-transform: scaleX(-1); */
+}
+
+#screen-btn {
+    position: absolute;
+    top: 10px;
+    left: calc(50% - 60px);
+    width: 120px;
 }
 
 
