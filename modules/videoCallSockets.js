@@ -8,15 +8,11 @@ module.exports = (socketIO) => {
         socket.on("join room", payload => {
             const roomID = payload.roomID;
             const phoneixID = payload.phoneixID;
+            const data = payload.data;
             if (users[roomID]) {
-                // const length = users[roomID].length;
-                // if (length === 4) {
-                //     socket.emit("room full");
-                //     return;
-                // }
-                users[roomID].push({socketID: socket.id, phoneixID: phoneixID});
+                users[roomID].push({socketID: socket.id, phoneixID: phoneixID, data: data});
             } else {
-                users[roomID] = [{socketID: socket.id, phoneixID: phoneixID}];
+                users[roomID] = [{socketID: socket.id, phoneixID: phoneixID, data: data}];
             }
             socket.join(roomID);
             socketToRoom[socket.id] = roomID;
@@ -27,8 +23,7 @@ module.exports = (socketIO) => {
     
         socket.on("sending signal", payload => {
             console.log(payload.callerID + ' sending signal to ' + payload.userToSignal)
-    
-            io.to(payload.userToSignal).emit('user joined', { signal: payload.signal, callerID: payload.callerID, phoneixID: payload.phoneix });
+            io.to(payload.userToSignal).emit('user joined', { signal: payload.signal, callerID: payload.callerID, phoneixID: payload.phoneix, data: payload.data });
         });
     
         socket.on("returning signal", payload => {
@@ -36,9 +31,14 @@ module.exports = (socketIO) => {
             io.to(payload.callerID).emit('receiving returned signal', { signal: payload.signal, id: socket.id });
         });
         
-        socket.on("mute all", payload => {
-            console.log(socket.id + ' sent mute all to room ' + payload.roomID)
-            io.to(roomID).emit('mute', payload);
+        socket.on("send task", payload => {
+            console.log(socket.id + ' sent task to the room ' + payload.roomID)
+            io.to(payload.roomID).emit('task', payload);
+        });
+
+        socket.on("message", payload => {
+            console.log(socket.id + ' sent message to the room ' + payload.roomID)
+            io.to(payload.roomID).emit('got message', payload);
         });
 
         socket.on('disconnect', () => {
